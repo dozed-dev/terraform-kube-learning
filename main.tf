@@ -24,9 +24,6 @@ provider "yandex" {
   zone = "ru-central1-a"
 }
 
-# debian-12 image: fd8j3nge575bu7csn9sa
-# https://yandex.cloud/ru/marketplace/products/yc/debian-12
-
 resource "yandex_vpc_network" "k8s-network" {
   name = "k8s-tf-network"
 }
@@ -76,6 +73,8 @@ variable "node_count" {
   default = 3
 }
 
+# debian-12 image: fd8j3nge575bu7csn9sa
+# https://yandex.cloud/ru/marketplace/products/yc/debian-12
 resource "yandex_compute_disk" "k8s-node-boot-disks" {
   count    = var.node_count
   name     = "k8s-node-boot-disk-${count.index}"
