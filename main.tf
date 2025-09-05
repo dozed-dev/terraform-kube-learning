@@ -38,13 +38,20 @@ resource "yandex_vpc_subnet" "k8s-subnet" {
 }
 
 resource "yandex_vpc_security_group" "k8s-sg" {
-  name = "K8s cluster security group"
+  name = "k8s-sg"
   network_id = yandex_vpc_network.k8s-network.id
 
   ingress {
     protocol = "TCP"
     description = "ssh"
     port = 22
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description    = "Permit ANY"
+    protocol       = "ANY"
+    v4_cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -93,12 +100,12 @@ resource "yandex_compute_instance" "k8s-node-vms" {
   network_interface {
     subnet_id = yandex_vpc_subnet.k8s-subnet.id
     nat       = true
+    security_group_ids = [ yandex_vpc_security_group.k8s-sg.id ]
   }
 
   scheduling_policy {
     preemptible = true
   }
-  security_group_id = yandex_vpc_security_group.k8s-sg.id
 
   # https://yandex.cloud/ru/docs/compute/concepts/vm-metadata
   metadata = {
