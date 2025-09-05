@@ -108,7 +108,16 @@ resource "yandex_compute_instance" "k8s-node-vms" {
 
   # https://yandex.cloud/ru/docs/compute/concepts/vm-metadata
   metadata = {
-    ssh-keys = "ubuntu:${file("~/.ssh/id_ed25519.pub")}"
+    user-data = join("\n", ["#cloud-config", yamlencode({
+      disable_root: false
+      ssh_authorized_keys = [ file("~/.ssh/id_ed25519.pub") ]
+      users = [{
+        name = "debian"
+        groups = "sudo"
+        sudo = "ALL=(ALL) NOPASSWD:ALL"
+        ssh_authorized_keys = [ file("~/.ssh/id_ed25519.pub") ]
+      }]
+    })])
   }
 }
 
