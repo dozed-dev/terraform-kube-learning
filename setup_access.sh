@@ -24,5 +24,5 @@ fi
 export YC_TOKEN="$(get_token)"
 export YC_CLOUD_ID="$(get_jq_secret YC_CLOUD_ID)"
 export YC_FOLDER_ID="$(get_jq_secret YC_FOLDER_ID)"
-export ACCESS_KEY="$(get_jq_secret ACCESS_KEY)"
-export SECRET_KEY="$(get_jq_secret SECRET_KEY)"
+export AWS_ACCESS_KEY_ID="$(get_jq_secret AWS_ACCESS_KEY_ID)"
+export AWS_SECRET_ACCESS_KEY="$(get_jq_secret AWS_SECRET_ACCESS_KEY)"
