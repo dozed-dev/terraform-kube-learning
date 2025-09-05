@@ -6,9 +6,8 @@ terraform {
   }
   # https://github.com/yandex-cloud-examples/yc-terraform-state
   backend "s3" {
-    endpoints = {
-      s3 = "storage.yandexcloud.net"
-    }
+    endpoint = "storage.yandexcloud.net"
+    use_lockfile = true
     bucket = "playful-jarring.tf-state"
     region = "ru-central1"
     key = "terraform/terraform.tfstate"

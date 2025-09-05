@@ -10,7 +10,7 @@ key_path = '.authorized_key.json'
 # Чтение закрытого ключа из JSON-файла
 with open(key_path, 'r') as f:
     obj = f.read() 
-    obj = json.loads(obj)
+    obj = json.loads(obj)['authorized_key']
     private_key = obj['private_key']
     key_id = obj['id']
     service_account_id = obj['service_account_id']
