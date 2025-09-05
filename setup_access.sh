@@ -22,8 +22,7 @@ if [ ! -d ".venv" ]; then
 fi
 
 export YC_TOKEN="$(get_token)"
-vars=(YC_CLOUD_ID YC_FOLDER_ID ACCESS_KEY SECRET_KEY)
-for var in "${vars[@]}"; do
-  get_jq_secret $var | read -r ${var?}
-  export ${var?}
-done
+export YC_CLOUD_ID="$(get_jq_secret YC_CLOUD_ID)"
+export YC_FOLDER_ID="$(get_jq_secret YC_FOLDER_ID)"
+export ACCESS_KEY="$(get_jq_secret ACCESS_KEY)"
+export SECRET_KEY="$(get_jq_secret SECRET_KEY)"
