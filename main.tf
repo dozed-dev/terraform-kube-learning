@@ -109,6 +109,7 @@ resource "yandex_compute_instance" "k8s-node-vms" {
   # https://yandex.cloud/ru/docs/compute/concepts/vm-metadata
   metadata = {
     user-data = join("\n", ["#cloud-config", yamlencode({
+      fqdn: "${each.key}.k8s.local"
       disable_root: false
       ssh_authorized_keys = [ file("~/.ssh/id_ed25519.pub") ]
       users = [{
