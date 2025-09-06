@@ -68,24 +68,24 @@ resource "yandex_vpc_security_group" "k8s-sg" {
   }
 }
 
-variable "node_count" {
-  type    = number
-  default = 3
+variable "nodes" {
+  type    = set(string)
+  default = ["node-0", "node-1", "server"]
 }
 
 # debian-12 image: fd8j3nge575bu7csn9sa
 # https://yandex.cloud/ru/marketplace/products/yc/debian-12
 resource "yandex_compute_disk" "k8s-node-boot-disks" {
-  count    = var.node_count
-  name     = "k8s-node-boot-disk-${count.index}"
+  for_each = var.nodes
+  name     = "k8s-boot-disk-${each.key}"
   type     = "network-ssd"
   size     = "20"
   image_id = "fd8j3nge575bu7csn9sa"
 }
 
 resource "yandex_compute_instance" "k8s-node-vms" {
-  count = var.node_count
-  name = "k8s-node-${count.index}"
+  for_each = var.nodes
+  name = "k8s-${each.key}"
 
   resources {
     cores  = 2
@@ -93,7 +93,7 @@ resource "yandex_compute_instance" "k8s-node-vms" {
   }
 
   boot_disk {
-    disk_id = yandex_compute_disk.k8s-node-boot-disks[count.index].id
+    disk_id = yandex_compute_disk.k8s-node-boot-disks[each.key].id
   }
 
   network_interface {
@@ -122,9 +122,13 @@ resource "yandex_compute_instance" "k8s-node-vms" {
 }
 
 output "internal_ip_addresses" {
-   value = [for x in yandex_compute_instance.k8s-node-vms : x.network_interface.0.ip_address]
+   value = {
+     for node in var.nodes : node => yandex_compute_instance.k8s-node-vms[node].network_interface.0.ip_address
+   }
 }
 
 output "external_ip_addresses" {
-   value = [for x in yandex_compute_instance.k8s-node-vms : x.network_interface.0.nat_ip_address]
+   value = {
+     for node in var.nodes : node => yandex_compute_instance.k8s-node-vms[node].network_interface.0.nat_ip_address
+   }
 }
