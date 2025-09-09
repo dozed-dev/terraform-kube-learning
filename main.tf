@@ -72,6 +72,10 @@ variable "nodes" {
   type    = set(string)
   default = ["node-0", "node-1", "server"]
 }
+variable "domain" {
+  type    = string
+  default = ".k8s.local"
+}
 
 # debian-12 image: fd8j3nge575bu7csn9sa
 # https://yandex.cloud/ru/marketplace/products/yc/debian-12
@@ -109,7 +113,7 @@ resource "yandex_compute_instance" "k8s-node-vms" {
   # https://yandex.cloud/ru/docs/compute/concepts/vm-metadata
   metadata = {
     user-data = join("\n", ["#cloud-config", yamlencode({
-      fqdn: "${each.key}.k8s.local"
+      fqdn: "${each.key}${var.domain}"
       disable_root: false
       ssh_authorized_keys = [ file("~/.ssh/id_ed25519.pub") ]
       users = [{
@@ -122,14 +126,28 @@ resource "yandex_compute_instance" "k8s-node-vms" {
   }
 }
 
-output "internal_ip_addresses" {
-   value = {
-     for node in var.nodes : node => yandex_compute_instance.k8s-node-vms[node].network_interface.0.ip_address
-   }
+locals {
+  internal_ip_addresses = {
+    for node in var.nodes : node => yandex_compute_instance.k8s-node-vms[node].network_interface.0.ip_address
+  }
+
+  external_ip_addresses = {
+    for node in var.nodes : node => yandex_compute_instance.k8s-node-vms[node].network_interface.0.nat_ip_address
+  }
 }
 
+output "internal_ip_addresses" {
+   value = local.internal_ip_addresses 
+}
 output "external_ip_addresses" {
-   value = {
-     for node in var.nodes : node => yandex_compute_instance.k8s-node-vms[node].network_interface.0.nat_ip_address
-   }
+   value = local.external_ip_addresses 
+}
+
+resource "local_file" "hosts" {
+  filename = "hosts"
+  content = <<EOT
+%{ for host, ip in local.external_ip_addresses ~}
+${ip} ${host}${var.domain} ${host}
+%{ endfor ~}
+EOT
 }
