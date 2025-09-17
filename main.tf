@@ -24,6 +24,27 @@ provider "yandex" {
   zone = "ru-central1-a"
 }
 
+resource "yandex_storage_bucket" "images-bucket" {
+  bucket = "playful-jarring.images"
+  max_size = 10 * pow(1024, 3) # GiB
+  default_storage_class = "STANDARD"
+
+  anonymous_access_flags {
+    read = true
+  }
+}
+
+resource "yandex_storage_object" "talos-image" {
+  bucket = yandex_storage_bucket.images-bucket.id
+  key    = "talos-v1.11.0-amd64"
+  source = "../metal-amd64.iso"
+}
+
+resource "yandex_compute_image" "talos-image" {
+  name       = "talos"
+  source_url = "https://storage.yandexcloud.net/${yandex_storage_bucket.images-bucket.bucket}/${yandex_storage_object.talos-image.key}"
+}
+
 resource "yandex_vpc_network" "k8s-network" {
   name = "k8s-tf-network"
 }
