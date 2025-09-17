@@ -61,8 +61,8 @@ resource "yandex_vpc_security_group" "k8s-sg" {
 
   ingress {
     protocol = "TCP"
-    description = "ssh"
-    port = 22
+    description = "talos"
+    port = 50000
     v4_cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -98,14 +98,12 @@ variable "domain" {
   default = ".k8s.local"
 }
 
-# debian-12 image: fd8j3nge575bu7csn9sa
-# https://yandex.cloud/ru/marketplace/products/yc/debian-12
 resource "yandex_compute_disk" "k8s-node-boot-disks" {
   for_each = var.nodes
   name     = "k8s-boot-disk-${each.key}"
   type     = "network-ssd"
   size     = "20"
-  image_id = "fd8j3nge575bu7csn9sa"
+  image_id = yandex_compute_image.talos-image.id
 }
 
 resource "yandex_compute_instance" "k8s-node-vms" {
@@ -131,20 +129,6 @@ resource "yandex_compute_instance" "k8s-node-vms" {
     preemptible = true
   }
 
-  # https://yandex.cloud/ru/docs/compute/concepts/vm-metadata
-  metadata = {
-    user-data = join("\n", ["#cloud-config", yamlencode({
-      fqdn: "${each.key}${var.domain}"
-      disable_root: false
-      ssh_authorized_keys = [ file("~/.ssh/id_ed25519.pub") ]
-      users = [{
-        name = "debian"
-        groups = "sudo"
-        sudo = "ALL=(ALL) NOPASSWD:ALL"
-        ssh_authorized_keys = [ file("~/.ssh/id_ed25519.pub") ]
-      }]
-    })])
-  }
 }
 
 locals {
