@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define PORT 8080
+#define DEFAULT_PORT 8080
 #define RESPONSE_TEMPLATE \
     "HTTP/1.1 200 OK\r\n" \
     "Content-Length: %zu\r\n" \
@@ -21,6 +21,11 @@ int main(int argc, char *argv[]) {
 
     const char *url_path = argv[1];
     const char *content = argv[2];
+
+    const char *port_env = getenv("PORT");
+    int port = port_env ? atoi(port_env) : DEFAULT_PORT;
+    if (port <= 0 || port > 65535)
+        port = DEFAULT_PORT;
 
     int server_fd, client_fd;
     struct sockaddr_in addr;
@@ -43,7 +48,7 @@ int main(int argc, char *argv[]) {
 
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(PORT);
+    addr.sin_port = htons(port);
 
     if (bind(server_fd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         perror("bind");
