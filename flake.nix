@@ -13,14 +13,14 @@
     packages.${system}.webserver-image = pkgs.dockerTools.buildImage {
       name = "simple-webserver";
       config = {
-        Cmd = ["${simple-webserver}/bin/simple-webserver"];
+        Entrypoint = ["${simple-webserver}/bin/simple-webserver"];
         ExposedPorts = {
           "8080/tcp" = {};
         };
       };
     };
     devShells.${system}.default = pkgs.mkShell {
-      packages = with pkgs; [ opentofu jq talosctl ];
+      packages = with pkgs; [ opentofu jq talosctl simple-webserver ];
       shellHook = ''
         ln -sf ${self.packages.${system}.webserver-image} docker-image-simple-webserver.tar.gz
         source ./setup_access.sh
