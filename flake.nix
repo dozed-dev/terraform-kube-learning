@@ -10,7 +10,7 @@
     pkgs = import nixpkgs { inherit system; };
   in {
     devShells.${system}.default = pkgs.mkShell {
-      packages = with pkgs; [ opentofu jq ];
+      packages = with pkgs; [ opentofu jq talosctl ];
       shellHook = ''
         source ./setup_access.sh
       '';
