@@ -12,6 +12,7 @@
   in {
     packages.${system}.webserver-image = pkgs.dockerTools.buildImage {
       name = "simple-webserver";
+      tag = "latest";
       config = {
         Entrypoint = ["${simple-webserver}/bin/simple-webserver"];
         ExposedPorts = {
