@@ -226,6 +226,22 @@ resource "yandex_alb_load_balancer" "k8s-lb" {
       }
     }
   }
+  listener {
+    name = "k8s-listener"
+    endpoint {
+      address {
+        external_ipv4_address {
+          address = yandex_vpc_address.lb-address.external_ipv4_address[0].address
+        }
+      }
+      ports = [6443]
+    }
+    stream {
+      handler {
+        backend_group_id = yandex_alb_backend_group.lb-backend-group.id
+      }
+    }
+  }
 }
 
 resource "yandex_alb_target_group" "lb-k8s-target-group" {
@@ -249,14 +265,11 @@ resource "yandex_alb_backend_group" "lb-backend-group" {
     }
   }
 
-  http_backend {
+  stream_backend {
     name             = "k8s-control"
     weight           = 1
     port             = 6443
     target_group_ids = [yandex_alb_target_group.lb-k8s-target-group.id]
-    tls {
-      sni = local.lb_domain
-    }
     load_balancing_config {
       panic_threshold = 50
     }
@@ -267,7 +280,6 @@ resource "yandex_alb_backend_group" "lb-backend-group" {
         path = "/"
       }
     }
-    http2 = "true"
   }
 }
 
