@@ -240,6 +240,37 @@ resource "yandex_alb_target_group" "lb-k8s-target-group" {
   }
 }
 
+resource "yandex_alb_backend_group" "lb-backend-group" {
+  name = "main-backend-group"
+
+  session_affinity {
+    connection {
+      source_ip = true
+    }
+  }
+
+  http_backend {
+    name             = "k8s-control"
+    weight           = 1
+    port             = 6443
+    target_group_ids = [yandex_alb_target_group.lb-k8s-target-group.id]
+    tls {
+      sni = local.lb_domain
+    }
+    load_balancing_config {
+      panic_threshold = 50
+    }
+    healthcheck {
+      timeout  = "1s"
+      interval = "1s"
+      http_healthcheck {
+        path = "/"
+      }
+    }
+    http2 = "true"
+  }
+}
+
 locals {
   lb_domain = "${yandex_vpc_address.lb-address.external_ipv4_address[0].address}.sslip.io"
   internal_ip_addresses = {
