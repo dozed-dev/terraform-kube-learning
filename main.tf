@@ -136,10 +136,9 @@ resource "yandex_vpc_address" "lb-address" {
   }
 }
 
-
 resource "yandex_cm_certificate" "lb-cert" {
   name    = "lb-cert"
-  domains = ["${yandex_vpc_address.lb-address.external_ipv4_address[0].address}.sslip.io"]
+  domains = [local.lb_domain]
 
   managed {
     challenge_type = "HTTP"
@@ -242,6 +241,7 @@ resource "yandex_alb_target_group" "lb-k8s-target-group" {
 }
 
 locals {
+  lb_domain = "${yandex_vpc_address.lb-address.external_ipv4_address[0].address}.sslip.io"
   internal_ip_addresses = {
     for node in var.nodes : node => yandex_compute_instance.k8s-node-vms[node].network_interface.0.ip_address
   }
