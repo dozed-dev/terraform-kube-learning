@@ -229,6 +229,18 @@ resource "yandex_alb_load_balancer" "k8s-lb" {
   }
 }
 
+resource "yandex_alb_target_group" "lb-k8s-target-group" {
+  name = "my-target-group"
+
+  dynamic "target" {
+    for_each = local.internal_ip_addresses
+    content {
+      subnet_id  = yandex_vpc_subnet.k8s-subnet.id
+      ip_address = target.value
+    }
+  }
+}
+
 locals {
   internal_ip_addresses = {
     for node in var.nodes : node => yandex_compute_instance.k8s-node-vms[node].network_interface.0.ip_address
