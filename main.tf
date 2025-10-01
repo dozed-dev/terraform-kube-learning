@@ -74,17 +74,13 @@ resource "yandex_vpc_security_group" "k8s-sg" {
 
   ingress {
     protocol          = "ANY"
-    description       = "Allow incoming traffic from members of the same security group"
-    from_port         = 0
-    to_port           = 65535
-    predefined_target = "self_security_group"
+    description       = "Permit ANY"
+    v4_cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
     protocol          = "ANY"
     description       = "Allow outgoing traffic to members of the same security group"
-    from_port         = 0
-    to_port           = 65535
     predefined_target = "self_security_group"
   }
 }
@@ -129,6 +125,87 @@ resource "yandex_compute_instance" "k8s-node-vms" {
     preemptible = true
   }
 
+}
+
+
+resource "yandex_vpc_address" "lb-address" {
+  name = "lb-address"
+
+  external_ipv4_address {
+    zone_id = "ru-central1-a"
+  }
+}
+
+
+resource "yandex_cm_certificate" "lb-cert" {
+  name    = "lb-cert"
+  domains = ["${yandex_vpc_address.lb-address.external_ipv4_address[0].address}.sslip.io"]
+
+  managed {
+    challenge_type = "HTTP"
+  }
+}
+
+resource "yandex_alb_http_router" "main-router" {
+  name = "main-router"
+}
+
+resource "yandex_alb_virtual_host" "main-vhost" {
+  name           = "vhost"
+  http_router_id = yandex_alb_http_router.main-router.id
+  route {
+    name = "acme-challenge"
+    http_route {
+      http_match {
+        path {
+          prefix = "/.well-known/acme-challenge/"
+        }
+      }
+      redirect_action {
+        replace_scheme = "https"
+        replace_host = "validation.certificate-manager.api.cloud.yandex.net"
+        replace_prefix = "/${yandex_cm_certificate.lb-cert.id}/"
+        response_code = "moved_permanently"
+      }
+    }
+  }
+  #route {
+  #  name = "kubernetes"
+  #  grpc_route {
+  #    
+  #  }
+  #}
+}
+
+resource "yandex_alb_load_balancer" "k8s-lb" {
+  name = "my-load-balancer"
+
+  network_id = yandex_vpc_network.k8s-network.id
+  security_group_ids = [ yandex_vpc_security_group.k8s-sg.id ]
+
+  allocation_policy {
+    location {
+      zone_id   = "ru-central1-a"
+      subnet_id = yandex_vpc_subnet.k8s-subnet.id
+    }
+  }
+
+  listener {
+    name = "my-listener"
+    endpoint {
+      address {
+        external_ipv4_address {
+          address = yandex_vpc_address.lb-address.external_ipv4_address[0].address
+        }
+      }
+      ports = [80, 443]
+    }
+    http {
+      handler {
+        http_router_id = yandex_alb_http_router.main-router.id
+      }
+    }
+  }
 }
 
 locals {
