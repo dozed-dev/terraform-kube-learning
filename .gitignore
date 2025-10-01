@@ -1,5 +1,5 @@
 # Secret cloud key
-/.authorized_key.json
+/.authorized_key.json*
 # Direnv
 /.direnv
 
