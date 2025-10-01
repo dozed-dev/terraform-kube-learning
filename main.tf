@@ -207,6 +207,26 @@ resource "yandex_alb_load_balancer" "k8s-lb" {
       }
     }
   }
+  listener {
+    name = "https-listener"
+    endpoint {
+      address {
+        external_ipv4_address {
+          address = yandex_vpc_address.lb-address.external_ipv4_address[0].address
+        }
+      }
+      ports = [443]
+    }
+    tls {
+      default_handler {
+        http_handler {
+          http_router_id = yandex_alb_http_router.main-router.id
+          http2_options { }
+        }
+        certificate_ids = [yandex_cm_certificate.lb-cert.id]
+      }
+    }
+  }
 }
 
 locals {
