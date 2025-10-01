@@ -191,7 +191,7 @@ resource "yandex_alb_load_balancer" "k8s-lb" {
   }
 
   listener {
-    name = "my-listener"
+    name = "http-listener"
     endpoint {
       address {
         external_ipv4_address {
