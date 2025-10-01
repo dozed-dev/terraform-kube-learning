@@ -198,11 +198,12 @@ resource "yandex_alb_load_balancer" "k8s-lb" {
           address = yandex_vpc_address.lb-address.external_ipv4_address[0].address
         }
       }
-      ports = [80, 443]
+      ports = [80]
     }
     http {
       handler {
         http_router_id = yandex_alb_http_router.main-router.id
+        http2_options { }
       }
     }
   }
