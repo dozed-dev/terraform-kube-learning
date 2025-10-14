@@ -274,12 +274,3 @@ output "internal_ip_addresses" {
 output "external_ip_addresses" {
    value = local.external_ip_addresses 
 }
-
-resource "local_file" "hosts" {
-  filename = "hosts"
-  content = <<EOT
-%{ for host, ip in local.external_ip_addresses ~}
-${ip} ${host}${var.domain} ${host}
-%{ endfor ~}
-EOT
-}
