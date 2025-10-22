@@ -83,3 +83,12 @@ resource "yandex_kubernetes_cluster" "zonal_cluster" {
     key_id = yandex_kms_symmetric_key.k8s-key.id
   }
 }
+resource "local_file" "kubeconfig" {
+  filename = "k8s/kubeconfig"
+  file_permission = "0644"
+  content  = templatefile("${path.module}/kubeconfig.tftpl", {
+    base64cert = base64encode(yandex_kubernetes_cluster.zonal_cluster.master[0].cluster_ca_certificate)
+    master_ip = yandex_kubernetes_cluster.zonal_cluster.master[0].external_v4_address
+    cluster_id = yandex_kubernetes_cluster.zonal_cluster.id
+  })
+}

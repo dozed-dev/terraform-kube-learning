@@ -4,6 +4,7 @@
 /.direnv
 /.venv
 /out
+/k8s/kubeconfig
 
 # Created by https://gitignore.org
 # Terraform.gitignore
