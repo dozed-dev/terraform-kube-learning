@@ -83,6 +83,75 @@ resource "yandex_kubernetes_cluster" "zonal_cluster" {
     key_id = yandex_kms_symmetric_key.k8s-key.id
   }
 }
+
+//
+// Create a new Managed Kubernetes Node Group.
+//
+resource "yandex_kubernetes_node_group" "zonal_cluster_nodes" {
+  cluster_id  = yandex_kubernetes_cluster.zonal_cluster.id
+  name        = ""
+  description = "description"
+  version     = "1.32"
+
+  instance_template {
+    platform_id = "standard-v2"
+
+    network_interface {
+      nat        = true
+      subnet_ids = ["${yandex_vpc_subnet.k8s-subnet.id}"]
+    }
+
+    resources {
+      memory = 2
+      cores  = 2
+    }
+
+    boot_disk {
+      type = "network-ssd"
+      size = 30 // minimum size
+    }
+
+    scheduling_policy {
+      preemptible = true
+    }
+
+    container_runtime {
+      type = "containerd"
+    }
+  }
+
+  scale_policy {
+    auto_scale {
+      initial = 1
+      min = 0
+      max = 4
+    }
+  }
+
+  allocation_policy {
+    location {
+      zone = yandex_vpc_subnet.k8s-subnet.zone
+    }
+  }
+
+  maintenance_policy {
+    auto_upgrade = true
+    auto_repair  = true
+
+    maintenance_window {
+      day        = "monday"
+      start_time = "15:00"
+      duration   = "3h"
+    }
+
+    maintenance_window {
+      day        = "friday"
+      start_time = "10:00"
+      duration   = "4h30m"
+    }
+  }
+}
+
 resource "local_file" "kubeconfig" {
   filename = "k8s/kubeconfig"
   file_permission = "0644"
