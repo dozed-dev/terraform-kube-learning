@@ -1,9 +1,9 @@
 # Secret cloud key
 /.authorized_key.json*
-# Direnv
-/.direnv
 
+/.direnv
 /.venv
+/out
 
 # Created by https://gitignore.org
 # Terraform.gitignore

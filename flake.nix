@@ -23,7 +23,7 @@
     devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [ opentofu jq talosctl simple-webserver ];
       shellHook = ''
-        ln -sf ${self.packages.${system}.webserver-image} docker-image-simple-webserver.tar.gz
+        ln -sf ${self.packages.${system}.webserver-image} out/docker-image-simple-webserver.tar.gz
         source ./setup_access.sh
       '';
     };
