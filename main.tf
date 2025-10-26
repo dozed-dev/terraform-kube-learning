@@ -1,3 +1,5 @@
+data "yandex_client_config" "client" {}
+
 resource "yandex_vpc_network" "k8s-network" {
   name = "k8s-tf-network"
 }
@@ -147,6 +149,10 @@ resource "yandex_kubernetes_node_group" "k8s-cluster-nodes" {
       duration   = "4h30m"
     }
   }
+}
+
+data "yandex_kubernetes_cluster" "cluster" {
+  cluster_id = yandex_kubernetes_cluster.k8s-cluster.id
 }
 
 resource "local_file" "kubeconfig" {
