@@ -49,9 +49,8 @@ resource "yandex_logging_group" "k8s-logger" {
 //
 // Create a new Managed Kubernetes zonal Cluster.
 //
-resource "yandex_kubernetes_cluster" "zonal_cluster" {
-  name        = "name"
-  description = "description"
+resource "yandex_kubernetes_cluster" "k8s-cluster" {
+  name        = "k8s-cluster"
 
   network_id = yandex_vpc_network.k8s-network.id
 
@@ -87,10 +86,8 @@ resource "yandex_kubernetes_cluster" "zonal_cluster" {
 //
 // Create a new Managed Kubernetes Node Group.
 //
-resource "yandex_kubernetes_node_group" "zonal_cluster_nodes" {
-  cluster_id  = yandex_kubernetes_cluster.zonal_cluster.id
-  name        = ""
-  description = "description"
+resource "yandex_kubernetes_node_group" "k8s-cluster-nodes" {
+  cluster_id  = yandex_kubernetes_cluster.k8s-cluster.id
   version     = "1.32"
 
   instance_template {
@@ -156,8 +153,8 @@ resource "local_file" "kubeconfig" {
   filename = "k8s/kubeconfig"
   file_permission = "0644"
   content  = templatefile("${path.module}/kubeconfig.tftpl", {
-    base64cert = base64encode(yandex_kubernetes_cluster.zonal_cluster.master[0].cluster_ca_certificate)
-    master_ip = yandex_kubernetes_cluster.zonal_cluster.master[0].external_v4_address
-    cluster_id = yandex_kubernetes_cluster.zonal_cluster.id
+    base64cert = base64encode(yandex_kubernetes_cluster.k8s-cluster.master[0].cluster_ca_certificate)
+    master_ip = yandex_kubernetes_cluster.k8s-cluster.master[0].external_v4_address
+    cluster_id = yandex_kubernetes_cluster.k8s-cluster.id
   })
 }
